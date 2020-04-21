@@ -1,7 +1,9 @@
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
+from rest_framework.authtoken.models import Token
 from .serializers import (RegistrationSerializer, LoginSerializer,
                           WalletCreationSerializer, WalletDepositSerializer,
                           ConversionSerializer, TransactionSerializer)
@@ -21,6 +23,8 @@ class RegistrationView(APIView):
                                         email=email,
                                         password=password)
 
+        Token.objects.create(user=user)
+
         return Response({'user_id': user.id})
 
 
@@ -33,17 +37,19 @@ class LoginView(APIView):
                             password=serializer.validated_data['password'])
         if user is not None:
             login(request, user)
-            return Response({'status': 'ok'})
+            return Response({'Authorization: Token': user.auth_token.key})
         else:
             return Response({'error': 'username or password invalid'}, 400)
 
 
 class WalletCreatorView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = WalletCreationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = User.objects.filter(username=serializer.validated_data['username']).first()
+        user = User.objects.filter(username=request.user).first()
         currency = Currency.objects.filter(name=serializer.validated_data['currency']).first()
         wallet = Wallet.objects.create(owner=user, balance=0, currency=currency)
 
@@ -51,9 +57,15 @@ class WalletCreatorView(APIView):
 
 
 class WalletDepositView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = WalletDepositSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        if not Wallet.objects.filter(owner=request.user,
+                                     currency__name=serializer.validated_data['currency']).exists():
+            return Response({'error': "you don't have a wallet with this currency"}, 400)
 
         wallet = Wallet.objects.filter(owner=request.user,
                                        currency__name=serializer.validated_data['currency']).first()
@@ -64,6 +76,8 @@ class WalletDepositView(APIView):
 
 
 class ConversionView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = ConversionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -97,6 +111,8 @@ class ConversionView(APIView):
 
 
 class TransactionView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = TransactionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

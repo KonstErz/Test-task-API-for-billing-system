@@ -27,7 +27,6 @@ class LoginSerializer(serializers.Serializer):
 
 
 class WalletCreationSerializer(serializers.Serializer):
-    username = serializers.CharField()
     currency = serializers.CharField()
 
     def validate_currency(self, attr):
