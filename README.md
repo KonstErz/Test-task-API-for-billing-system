@@ -170,12 +170,14 @@
 (подробное описание можно прочитать по [ссылке](https://developer.mozilla.org/ru/docs/Learn/Server-side/Django/development_environment))
 2.  Убедившись, что установка Python прошла корректно, выполните следующие команды в терминале 
 (если вы работаете в Windows, вы можете использовать `py` или `py -3` вместо `python` для запуска команд Python):
-
-    `pip3 install -r requirements.txt`
-    `python3 manage.py makemigrations`
-    `python3 manage.py migrate`
-    `python3 manage.py createsuperuser # Создание суперпользователя`
-    `python3 manage.py runserver`
+    
+    ```
+    pip3 install -r requirements.txt
+    python3 manage.py makemigrations
+    python3 manage.py migrate
+    python3 manage.py createsuperuser # Создание суперпользователя
+    python3 manage.py runserver
+    ```
 
 3.  Теперь вы можете перейти по адресу http://127.0.0.1:8000/admin/ в своем браузере для перехода в административную панель сервиса 
 4.  Попробуйте создать несколько тестовых объектов каждого типа в базе данных и опробовать на них доступный функционал
