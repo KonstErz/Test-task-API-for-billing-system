@@ -198,25 +198,25 @@
 Другие полезные команды, которые могут вам пригодиться в ходе работы с docker-контейнером проекта:
     
     docker images -a
-    docker-compose images   # Вывод списка всех образцов
+    docker-compose images    # Вывод списка всех образов
     
     docker ps -a
-    docker-compose ps   # Вывод списка всех контейнеров
+    docker-compose ps    # Вывод списка всех контейнеров
 
-    docker-compose logs -f  # Вывод лога журналов запущенных сервисов
+    docker-compose logs -f    # Вывод лога журналов запущенных сервисов
 
-    docker-compose down # Остановка запущенных контейнеров
+    docker-compose down   # Остановка запущенных контейнеров
 
-    docker rmi $(docker images -f "dangling=true" -q)   # Удаление всех образов, не помеченных тэгами
+    docker rmi $(docker images -f "dangling=true" -q)    # Удаление всех образов, не помеченных тэгами
 
-    docker rmi <Image_ID>   # Удаление конкретного образа по ID
+    docker rmi <Image_ID>    # Удаление конкретного образа по ID
 
-    docker rmi $(docker images -a -q)   # Удаление всех образов
+    docker rmi $(docker images -a -q)    # Удаление всех образов
 
-    docker rm <ID_or_Name>  # Удаление конкретного контейнера по ID или по имени
+    docker rm <ID_or_Name>    # Удаление конкретного контейнера по ID или по имени
 
     docker stop $(docker ps -a -q)
-    docker rm $(docker ps -a -q)    # Остановка и удаление всех контейнеров
+    docker rm $(docker ps -a -q)     # Остановка и удаление всех контейнеров
     
 
 
