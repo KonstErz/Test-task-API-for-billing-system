@@ -1,221 +1,222 @@
-# API сервис для абстрактной биллинговой системы
+# API service for abstract billing system
 
+| [Русская версия](https://github.com/KonstErz/Test_task_API_for_billing_system/blob/master/README.ru.md) |
 
-### Сервис реализован с помощью инструментов Django, Django REST framework
-
----
-
-
-# Структура базы данных
-
-База данных сервиса представлена следующими объектами и моделями (http://.../admin/)
-
-## Модели API приложения
-
-+ **ВАЛЮТА** (*Сurrency*)
-Имеет поле *Name* - наименование валюты по стандарту ISO 4217 в виде трехбуквенного алфавитного кода (alfa-3) 
-в верхнем регистре (USD, EUR и т.д.)
-
-+ **КУРС ВАЛЮТ** (*Exchange Rate*)
-Имеет поля: *Currency Numerator* - валюта-числитель; *Currency Denominator* - валюта-знаменатель; 
-*Current Rate* - текущий курс валюты-числителя по отношению к валюте-знаменателю
-
-+ **КОШЕЛЕК** (*Wallet*)
-Имеет поля: *ID* - уникальный идентификатор кошелька; *Owner* - владелец кошелька (username профиля пользователя); 
-*Balance* - текущая сумма средств на кошельке; *Сurrency* - валюта кошелька
-
-## Токены авторизации
-
-+ **ТОКЕНЫ** (*Tokens*)
-Имеет поля: *Key* - токен авторизации пользователя, создаваемый при регистрации нового пользователя в системе;
-*User* - имя пользователя (username профиля пользователя); *Created* - дата и время создания токена (регистрации пользователя в системе)
-
-## Данные аутентификации и авторизации
-
-+ **ГРУППЫ** (*Groups*) - группы пользователей
-
-+ **ПОЛЬЗОВАТЕЛИ** (*Users*)
-Профиль пользователя имеет поля: *Username* - имя пользователя; *Email Address* - адрес электронной почты;
-*First Name* - имя; *Last Name* - фамилия; *Staff Status* - статус сотрудника, определяющий права доступа пользователя в системе
+### The service is implemented using the Django tools, Django REST framework
 
 ---
 
 
-# Функционал API приложения
+# Database structure
 
-Сервис предоставляет 6 основных функциональных единиц, которые поддерживают входные данные в формате JSON
+The service database is represented by the following objects and models (http://.../admin/)
+
+## Application API Models
+
++ **CURRENCY**
+Has a field *Name* - currency name according to ISO 4217 in the form of a three-letter alphabetical code in upper case (USD, EUR, etc.)
+
++ **EXCHANGE RATE**
+It has fields: 
+*Currency Numerator*; 
+*Currency Denominator*; 
+*Current Rate* - current rate of the numerator currency in relation to the denominator currency
+
++ **WALLET**
+It has fields: 
+*ID* - unique wallet id; 
+*Owner* - wallet owner (username user profile); 
+*Balance* - current amount of funds in the wallet; 
+*Сurrency* - wallet currency
+
+## Authorization Tokens
+
++ **TOKENS**
+It has fields: 
+*Key* - user authorization token created when a new user is registered in the system; 
+*User* - username (username user profile); 
+*Created* - date and time of token creation (user registration in the system)
+
+## Authentication and Authorization Data
+
++ **GROUPS** - groups of users
+
++ **USERS**
+User profile has fields: 
+*Username*; 
+*Email Address*;
+*First Name*; 
+*Last Name*; 
+*Staff Status* - defines user access rights in the system
+
+---
 
 
-1.	**РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ**    (*Registration*)
+# Application API Functionality
+
+The service provides 6 basic functional units that support input in JSON format.
+
+
+1.	**REGISTRATION**
 
 (http://.../api/registration/)
 
-Создает нового пользователя в системе, токен авторизации пользователя в системе.
-Возвращает ID нового пользователя.
+Creates a new user in the system, a user authorization token in the system.
+Returns the ID of the new user.
 
 ***Sample input content:***     `{"username": "John", "email": "travolta54@domain.com", "password": "thmstdiffcltpasswd955"}`
 
-где поля: *username* - желаемое имя профиля пользователя в системе; *email* - адрес электронной почты;
-*password* - пароль для авторизации пользователя в системе
+where are the fields: 
+*username* - desired user profile name in the system; 
+*email* - E-mail address;
+*password* - password for user authorization in the system
 
 
-2.	**АВТОРИЗАЦИЯ**    (*Login*)
+2.	**LOGIN**
 
 (http://.../api/login/)
 
-Проводит аутентификацию пользователя в системе, осуществляет вход пользователя в его профиль, 
-предоставляет права на проведение остальных операций в системе. Возвращает токен авторизации пользователя
-или ошибку с кодом 400 в случае неудачной аутентификации.
+Authenticates the user in the system, logs the user into his profile, provides rights to conduct other operations in the system. 
+Returns the user authorization token or error with status code 400 in case of authentication failure.
 
 ***Sample input content:***     `{"username": "John", "password": "thmstdiffcltpasswd955"}`
 
-где поля: *username* - имя профиля пользователя в системе; *password* - пароль для авторизации пользователя в системе
+where are the fields: 
+*username* - user profile name in the system; 
+*password* - password for user authorization in the system
 
 
-3.	**СОЗДАНИЕ КОШЕЛЬКА**    (*Wallet Creator*)
+3.	**WALLET CREATOR**
 
 (http://.../api/walletcreation/)
 
-Создает новый кошелек, владелец которого идентифицируется по имени профиля пользователя в системе (username),
-с балансом по умолчанию равным 0 и с валютой, выбранной пользователем из доступного списка валют в БД системы.
-Возвращает ID созданного кошелька.
+Creates a new wallet, the owner of which is identified by the name of the user profile in the system (username), with a default balance of 0 and with the currency selected by the user from the available list of currencies in the system database.
+Returns the ID of the created wallet.
 
 ***Sample input content:***     `{"currency": "usd"}`
 
-где поле *currency* - наименование желаемой валюты кошелька из доступного списка валют в БД системы 
+where is the field *currency* - name of the desired wallet currency from the available list of currencies in the system database 
 
 
-4.	**ПОПОЛНЕНИЕ БАЛАНСА КОШЕЛЬКА**    (*Wallet Deposit*)
+4.	**WALLET DEPOSIT**
 
 (http://.../api/walletdeposit/)
 
-Пополняет баланс (сумму средств) кошелька с текущей валютой кошелька на желаемую сумму.
-Возвращает сообщение о пополнении баланса кошелька на желаемую сумму или ошибку с кодом 400
-в случае отсутствия кошелька у пользователя.
+Replenishes the balance (amount of funds) of the wallet with the current wallet currency by the desired amount.
+Returns a message about the replenishment of the wallet balance by the desired amount or an error with the status code 400 if the user does not have a wallet.
 
 ***Sample input content:***     `{"currency": "usd", "amount": 300}`
 
-где поля: *currency* - наименование валюты кошелька, баланс которого пользователь желает пополнить;
-*amount* - количество средств, на которое следует пополнить баланс кошелька
+where are the fields: 
+*currency* - currency name of the wallet, the balance of which the user wishes to replenish;
+*amount* - the amount of funds to replenish the wallet balance
 
 
-5.	**КОНВЕРТАЦИЯ СРЕДСТВ**    (*Conversion*)
+5.	**CONVERSION**
 
 (http://.../api/conversion/)
 
-Производит перевод указанной суммы средств с кошелька пользователя с одной валютой на кошелек пользователя с другой валютой,
-проводя при этом конвертацию средств с учетом текущего внутреннего курса системы по данной валютной паре. 
-Возвращает сообщение об успешной конвертации средств или ошибку с кодом 400 в случае нехватки средств (если пользователь
-указал сумму, превышающую текущий баланс на его кошельке)
+It transfers the specified amount of funds from the user's wallet with one currency to the user's wallet with another currency, while converting funds taking into account the current internal rate of the system for this currency pair.
+Returns a message about a successful money conversion or an error with status code 400 in case of a shortage of funds (if the user indicated an amount exceeding the current balance on his wallet).
 
 ***Sample input content:***     `{"first_currency": "usd", "second_currency": "eur", "amount": 250}`
 
-где поля: *first_currency* - наименование валюты кошелька, с баланса которого спишется указанная сумма средств при конвертации;
-*second_currency* - наименование валюты кошелька, баланс которого пополнится на указанную сумму средств при конвертации;
-*amount* - количество средств, на которое следует осуществить конвертацию
+where are the fields: 
+*first_currency* - currency name of the wallet, the balance of which will decrease by the indicated amount of funds during conversion;
+*second_currency* - currency name of the wallet, the balance of which will be replenished by the indicated amount of funds during conversion;
+*amount* - amount of funds to be converted
 
 
-6.	**ТРАНЗАКЦИЯ СРЕДСТВ ДРУГОМУ ПОЛЬЗОВАТЕЛЮ**    (*Transaction*)
+6.	**TRANSACTION**
 
 (http://.../api/transaction/)
 
-Производит перевод указанной суммы средств с кошелька одного пользователя на кошелек другого пользователя.
-В том случае, если валюта кошелька отправителя не совпадает с валютой кошелька получателя, то проводит автоматическую конвертацию 
-средств с учетом текущего внутреннего курса системы по данной валютной паре. 
-Возвращает сообщение об успешной транзакции средств или ошибку с кодом 400 в случае отсутствия кошелька у пользователя или 
-в случае нехватки средств (если пользователь указал сумму, превышающую текущий баланс на его кошельке)
+It transfers the specified amount of funds from the wallet of one user to the wallet of another user.
+In the event that the currency of the sender’s wallet does not coincide with the currency of the recipient’s wallet, it automatically converts funds taking into account the current internal rate of the system for this currency pair. 
+Returns a message about a successful transaction of funds or an error with status code 400 if the user does not have a wallet or in case of a lack of funds (if the user indicated an amount exceeding the current balance on his wallet)
 
 ***Sample input content:***     `{"username": "Uma", "currency": "usd", "my_wallet_currency": "usd", "amount": 250}`
 
-где поля: *username* - имя профиля пользователя в системе, по которому идентифицируется кошелек, баланс которого пополнится 
-на указанную сумму средств при транзакции;
-*currency* - наименование валюты кошелька, баланс которого пополнится на указанную сумму средств при транзакции;
-*my_wallet_currency* - наименование валюты кошелька, с баланса которого спишется указанная сумма средств при транзакции;
-*amount* - количество средств, на которое следует осуществить транзакцию
+where are the fields: 
+*username* - the name of the user profile in the system by which the wallet is identified, the balance of which will be replenished by the specified amount of funds during the transaction;
+*currency* - currency name of the wallet, the balance of which will be replenished by the indicated amount of funds during the transaction;
+*my_wallet_currency* - currency name of the wallet, the balance of which will decrease by the indicated amount of funds during the transaction;
+*amount* - the amount of funds to be transacted
 
 ---
 
 
-### Особенности сервиса
+### Service Features
 
 
-***Преимущества***
+***Advantages***
 
-+ Все операции, связанные с кошельками, могут проводить только пользователи, прошедшие авторизацию в системе;
-+ Обработка большинства типичных ошибок, связанных с некорректным вводом данных;
-+ Регистронезависимый ввод наименования валют;
-+ Корректное арифметическое округление средств на балансе кошелька при операциях конвертации и транзакции средств;
-+ Возможность автоматической конвертации средств при транзакции средств другому пользователю.
++ All operations related to wallets can be carried out only by users who are authorized in the system;
++ Handling most common errors related to incorrect data entry;
++ Currency name input is not case sensitive;
++ Correct arithmetic rounding of funds on the balance of the wallet during the operations of conversion and transaction of funds;
++ The ability to automatically convert funds when transaction of funds to another user.
 
 
-***Недостатки / недоработки***
-+ При пополнении пользователем баланса кошелька должна учитываться возможность различия внешней валюты и текущей валюты кошелька,
-и при необходимости должна происходить автоконвертация платежа;
-+ Внутренний курс валют в системе в идеале должен постоянно поддерживаться в актуальном состоянии за счет запросов на внешний API
-с данными курса валют в мире на текущий момент (такие услуги предоставляют, например, [ЦБ РФ](https://www.cbr.ru/development/DWS/), [Европейский Центробанк](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml),
-[Bloomberg](https://www.bloomberg.com/markets/currencies) и др.);
-+ Формат отображения баланса кошелька пользователя (например, вещественное число с округлением до второго знака после точки) 
-должен быть постоянным как при пополнении баланса, так и в результате операций по конвертации и транзакции средств, и не должен 
-зависеть от формата того или иного значения курса валюты;
-+ С большой долей вероятности код по обработке запроса на конвертацию средств может быть оптимизирован в плане скорости работы и человекочитаемости;
-+ Тесты(!): на данный момент покрытие тестами конечных точек приложения составляет 0 %. В следствие чего, значительно усложняется поддержка кодовой базы при некорректной работе сервиса в результате внесения изменений в код :(
+***Flaws***
++ When a user replenishes a wallet balance, the possibility of distinguishing between the foreign currency and the current wallet currency should be taken into account, and if necessary, the payment will be converted automatically;
++ The internal exchange rate in the system, ideally, should be constantly kept up to date due to requests for an external API with the current exchange rates in the world (such services are provided, for example [TCB RF](https://www.cbr.ru/development/DWS/), [European CB](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml), [Bloomberg](https://www.bloomberg.com/markets/currencies) and etc.);
++ The format for displaying the user's wallet balance (for example, a float num rounded to the second digit after the period) must be constant both when replenishing the balance and as a result of money conversion and transaction operations, and should not depend on the format of a currency value;
++ With a high degree of probability, the code for processing the request for converting funds can be optimized in terms of speed and readability;
++ Tests(!): at the moment, application endpoint test coverage is 0%. As a result of which, support for the code base is greatly complicated when the service doesn't work as a result of changes to the code :(
  
 ---
 
 
-### Краткое руководство по быстрому запуску сервиса на вашем локальном компьютере
+### Quick start guide for starting a service on your local computer
 
-1.	Данный проект существует в виде docker-контейнера, для его корректной сборки и запуска на вашем локальном компьютере
-вам потребуется установить актуальные версии [Docker Engine](https://docs.docker.com/engine/install/) и [Docker Compose](https://docs.docker.com/compose/install/)
+1.	This project exists as a docker container, for its correct mounting and launch on your local computer you will need to install the current versions of the [Docker Engine](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/)
 
-2.  Чтобы произвести сборку образа, из корневой папки проекта выполните следующую команду в терминале:
+2.  To mount the image, from the project root folder, run the following command in the terminal:
 
     ```
     docker-compose build
     ```
 
-3.  После успешной установки всех необходимых зависимостей, выполните запуск контейнера:
+3.  After successfully installing all the necessary requirements, start the container:
 
     ```
     docker-compose up -d
     ```
 
-4.  Прежде, чем перейти на сервер, создайте в системе суперпользователя:
+4.  Before moving to the server, create a superuser in the system:
 
     ```
     docker-compose exec web python manage.py createsuperuser
     ```
 
-Внимание! В проекте уже предустановлена база данных по умолчанию SQLite (db.sqlite3), а также созданы и применены все необходимые миграции.
+Attention! The project already has a default SQLite database (db.sqlite3) preinstalled, and all the necessary migrations are created and applied.
 
-5.  Теперь вы можете перейти на сервер http://localhost:8000/ в вашем браузере. Войдите в административную панель проекта (http://localhost:8000/admin/)
-под учетными данными созданного вами суперпользователя и попробуйте создать несколько тестовых объектов каждого типа. Вы можете протестировать работу
-основного функционала приложения, например: создание кошелька (http://localhost:8000/api/walletcreation/), пополнение баланса (http://localhost:8000/api/walletdeposit/)
-и перевод средств другому пользователю (http://localhost:8000/api/transaction/).
+5.  Now you can go to the server http://localhost:8000/ in your browser. Log in to the project admin panel (http://localhost:8000/admin/) under the credentials of the superuser you created and try to create several test objects of each type. You can test the operation of the main functionality of the application, for example: creating a wallet (http://localhost:8000/api/walletcreation/), replenishing the balance (http://localhost:8000/api/walletdeposit/) and transaction of funds to another user (http://localhost:8000/api/transaction/).
 
 
-Другие полезные команды, которые могут вам пригодиться в ходе работы с docker-контейнером проекта:
+Other useful commands that may come in handy when working with the docker container of the project:
     
     docker images -a
-    docker-compose images    # Вывод списка всех образов
+    docker-compose images    # List all images
     
     docker ps -a
-    docker-compose ps    # Вывод списка всех контейнеров
+    docker-compose ps    # List all containers
 
-    docker-compose logs -f    # Вывод лога журналов запущенных сервисов
+    docker-compose logs -f    # Logs of running services
 
-    docker-compose down   # Остановка запущенных контейнеров
+    docker-compose down   # Stop running containers
 
-    docker rmi $(docker images -f "dangling=true" -q)    # Удаление всех образов, не помеченных тэгами
+    docker rmi $(docker images -f "dangling=true" -q)    # Delete all images not tagged
 
-    docker rmi <Image_ID>    # Удаление конкретного образа по ID
+    docker rmi <Image_ID>    # Delete a specific image by ID
 
-    docker rmi $(docker images -a -q)    # Удаление всех образов
+    docker rmi $(docker images -a -q)    # Delete all images
 
-    docker rm <ID_or_Name>    # Удаление конкретного контейнера по ID или по имени
+    docker rm <ID_or_Name>    # Removing a specific container by ID or name
 
     docker stop $(docker ps -a -q)
-    docker rm $(docker ps -a -q)     # Остановка и удаление всех контейнеров
+    docker rm $(docker ps -a -q)     # Stop and delete all containers
     
 
 
