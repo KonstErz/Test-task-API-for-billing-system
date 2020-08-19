@@ -1,6 +1,15 @@
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
 from django.db import models
 import uuid
-from django.contrib.auth.models import User
+
+
+@receiver(post_save, sender=User)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
 
 
 class Currency(models.Model):
@@ -25,7 +34,7 @@ class Wallet(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,
                               blank=True)
-    balance = models.FloatField()
+    balance = models.FloatField(default=0)
     currency = models.ForeignKey(Currency, on_delete=models.CASCADE,
                                  related_name='wallet_currency')
 

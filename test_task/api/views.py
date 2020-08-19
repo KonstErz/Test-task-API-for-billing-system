@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
-from rest_framework.authtoken.models import Token
 from .serializers import (RegistrationSerializer, LoginSerializer,
                           WalletCreationSerializer, WalletDepositSerializer,
                           ConversionSerializer, TransactionSerializer)
@@ -25,8 +24,6 @@ class RegistrationView(APIView):
                                         email=email,
                                         password=password)
 
-        Token.objects.create(user=user)
-
         return Response({'user_id': user.id}, 201)
 
 
@@ -40,7 +37,8 @@ class LoginView(APIView):
                             password=serializer.validated_data['password'])
         if user is not None:
             login(request, user)
-            return Response({'Authorization: Token': user.auth_token.key}, 200)
+            return Response({'Authorization':
+                            f'Token {user.auth_token.key}'}, 200)
         else:
             return Response({'error': 'username or password invalid'}, 400)
 
