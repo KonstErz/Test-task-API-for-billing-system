@@ -42,13 +42,12 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
 ]
 
+# Django REST
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
@@ -67,6 +66,8 @@ REST_FRAMEWORK = {
         '%d.%m.%Y %H:%M:%S %Z',
     )
 }
+
+# Authentication settings
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -142,7 +143,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Asia/Tomsk'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
