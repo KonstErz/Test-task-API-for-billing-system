@@ -9,7 +9,8 @@ class CurrencyAdmin(admin.ModelAdmin):
 
 @admin.register(ExchangeRate)
 class ExchangeRateAdmin(admin.ModelAdmin):
-    list_display = ('currency_numerator', 'currency_denominator', 'current_rate')
+    list_display = ('currency_numerator', 'currency_denominator',
+                    'current_rate')
 
 
 @admin.register(Wallet)

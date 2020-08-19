@@ -14,16 +14,20 @@ class Currency(models.Model):
 
 
 class ExchangeRate(models.Model):
-    currency_numerator = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name='numerator')
-    currency_denominator = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name='denominator')
+    currency_numerator = models.ForeignKey(Currency, on_delete=models.CASCADE,
+                                           related_name='numerator')
+    currency_denominator = models.ForeignKey(Currency, on_delete=models.CASCADE,
+                                             related_name='denominator')
     current_rate = models.FloatField()
 
 
 class Wallet(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,
+                              blank=True)
     balance = models.FloatField()
-    currency = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name='wallet_currency')
+    currency = models.ForeignKey(Currency, on_delete=models.CASCADE,
+                                 related_name='wallet_currency')
 
     def __str__(self):
         return f'{self.id}'

@@ -7,10 +7,12 @@ from rest_framework.authtoken.models import Token
 from .serializers import (RegistrationSerializer, LoginSerializer,
                           WalletCreationSerializer, WalletDepositSerializer,
                           ConversionSerializer, TransactionSerializer)
-from .models import Currency, ExchangeRate, Wallet
+from .models import Currency, Wallet
+from .course import course_determinant
 
 
 class RegistrationView(APIView):
+
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -25,10 +27,11 @@ class RegistrationView(APIView):
 
         Token.objects.create(user=user)
 
-        return Response({'user_id': user.id})
+        return Response({'user_id': user.id}, 201)
 
 
 class LoginView(APIView):
+
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -37,12 +40,13 @@ class LoginView(APIView):
                             password=serializer.validated_data['password'])
         if user is not None:
             login(request, user)
-            return Response({'Authorization: Token': user.auth_token.key})
+            return Response({'Authorization: Token': user.auth_token.key}, 200)
         else:
             return Response({'error': 'username or password invalid'}, 400)
 
 
 class WalletCreatorView(APIView):
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -50,101 +54,126 @@ class WalletCreatorView(APIView):
         serializer.is_valid(raise_exception=True)
 
         user = User.objects.filter(username=request.user).first()
-        currency = Currency.objects.filter(name=serializer.validated_data['currency']).first()
-        wallet = Wallet.objects.create(owner=user, balance=0, currency=currency)
+        currency = Currency.objects.filter(
+            name=serializer.validated_data['currency']).first()
+        wallet = Wallet.objects.create(owner=user,
+                                       balance=0,
+                                       currency=currency)
 
-        return Response({'wallet_id': wallet.id})
+        return Response({'wallet_id': wallet.id}, 201)
 
 
 class WalletDepositView(APIView):
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = WalletDepositSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        if not Wallet.objects.filter(owner=request.user,
-                                     currency__name=serializer.validated_data['currency']).exists():
-            return Response({'error': "you don't have a wallet with this currency"}, 400)
+        wallet = Wallet.objects.filter(
+            id=serializer.validated_data['wallet_id']).first()
+        amount = serializer.validated_data['amount']
 
-        wallet = Wallet.objects.filter(owner=request.user,
-                                       currency__name=serializer.validated_data['currency']).first()
-        wallet.balance += serializer.validated_data['amount']
+        wallet.balance += amount
+        wallet.balance = round(wallet.balance, 2)
         wallet.save()
 
-        return Response({'wallet successfully replenished by': request.data['amount']})
+        context = {
+            'wallet successfully replenished by': f'{amount} c.u.'
+        }
+
+        return Response(context, 200)
 
 
 class ConversionView(APIView):
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = ConversionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        wallet1 = Wallet.objects.filter(owner=request.user,
-                                        currency__name=serializer.validated_data['first_currency']).first()
-        wallet2 = Wallet.objects.filter(owner=request.user,
-                                        currency__name=serializer.validated_data['second_currency']).first()
+        amount = serializer.validated_data['amount']
 
-        if wallet1.balance < request.data['amount']:
+        wallet1 = Wallet.objects.filter(
+            id=serializer.validated_data['first_wallet_id']).first()
+        wallet2 = Wallet.objects.filter(
+            id=serializer.validated_data['second_wallet_id']).first()
+
+        if wallet1.balance < amount:
             return Response({'error': 'lack of funds in your wallet'}, 400)
 
-        wallet1.balance -= request.data['amount']
+        wallet1.balance -= amount
 
-        if ExchangeRate.objects.filter(currency_numerator__name=serializer.validated_data['first_currency'],
-                                       currency_denominator__name=serializer.validated_data['second_currency']).exists():
-            course = ExchangeRate.objects.filter(currency_numerator__name=serializer.validated_data['first_currency'],
-                                                 currency_denominator__name=serializer.validated_data['second_currency']).first()
-            wallet2.balance += request.data['amount'] * course.current_rate
-        elif ExchangeRate.objects.filter(currency_numerator__name=serializer.validated_data['second_currency'],
-                                         currency_denominator__name=serializer.validated_data['first_currency']).exists():
-            course = ExchangeRate.objects.filter(currency_numerator__name=serializer.validated_data['second_currency'],
-                                                 currency_denominator__name=serializer.validated_data['first_currency']).first()
-            wallet2.balance += request.data['amount'] * 1 / course.current_rate
+        if wallet1.currency != wallet2.currency:
+            course = course_determinant(num=wallet1.currency,
+                                        den=wallet2.currency)
+            if course is None:
+                course = course_determinant(num=wallet2.currency,
+                                            den=wallet1.currency)
+                wallet2.balance += amount * 1 / course.current_rate
+            else:
+                wallet2.balance += amount * course.current_rate
+        else:
+            wallet2.balance += amount
 
+        wallet1.balance = round(wallet1.balance, 2)
         wallet2.balance = round(wallet2.balance, 2)
         wallet1.save()
         wallet2.save()
 
-        return Response({f'Succes! {wallet2.currency} wallet balance is now': wallet2.balance})
+        context = {
+            f'Succes! {wallet2.id} wallet balance is now': wallet2.balance
+        }
+
+        return Response(context, 200)
 
 
 class TransactionView(APIView):
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = TransactionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        sending_wallet = Wallet.objects.filter(owner=request.user,
-                                               currency__name=serializer.validated_data['my_wallet_currency']).first()
-        receiver_wallet = Wallet.objects.filter(owner__username=serializer.validated_data['username'],
-                                                currency__name=serializer.validated_data['currency']).first()
+        rec_user = serializer.validated_data['username']
+        rec_cur = serializer.validated_data['currency']
+        send_wal_id = serializer.validated_data['my_wallet_id']
+        amount = serializer.validated_data['amount']
 
-        if sending_wallet is None:
-            return Response({'error': "you don't have a wallet with this currency"}, 400)
-        elif sending_wallet.balance < request.data['amount']:
+        sending_wallet = Wallet.objects.filter(
+            id=send_wal_id).first()
+        receiver_wallet = Wallet.objects.filter(
+            owner__username=rec_user,
+            currency__name=rec_cur).first()
+
+        if sending_wallet.balance < amount:
             return Response({'error': 'lack of funds in your wallet'}, 400)
 
-        sending_wallet.balance -= request.data['amount']
+        sending_wallet.balance -= amount
 
         if sending_wallet.currency != receiver_wallet.currency:
-            if ExchangeRate.objects.filter(currency_numerator__name=serializer.validated_data['my_wallet_currency'],
-                                           currency_denominator__name=serializer.validated_data['currency']).exists():
-                course = ExchangeRate.objects.filter(currency_numerator__name=serializer.validated_data['my_wallet_currency'],
-                                                     currency_denominator__name=serializer.validated_data['currency']).first()
-                receiver_wallet.balance += request.data['amount'] * course.current_rate
-            elif ExchangeRate.objects.filter(currency_numerator__name=serializer.validated_data['currency'],
-                                             currency_denominator__name=serializer.validated_data['my_wallet_currency']).exists():
-                course = ExchangeRate.objects.filter(currency_numerator__name=serializer.validated_data['currency'],
-                                                     currency_denominator__name=serializer.validated_data['my_wallet_currency']).first()
-                receiver_wallet.balance += request.data['amount'] * 1 / course.current_rate
+            course = course_determinant(num=sending_wallet.currency,
+                                        den=receiver_wallet.currency)
+            if course is None:
+                course = course_determinant(num=receiver_wallet.currency,
+                                            den=sending_wallet.currency)
+                receiver_wallet.balance += amount * 1 / course.current_rate
+            else:
+                receiver_wallet.balance += amount * course.current_rate
         else:
-            receiver_wallet.balance += request.data['amount']
+            receiver_wallet.balance += amount
 
+        sending_wallet.balance = round(sending_wallet.balance, 2)
         receiver_wallet.balance = round(receiver_wallet.balance, 2)
         sending_wallet.save()
         receiver_wallet.save()
 
-        return Response({f"Succes! {receiver_wallet.owner}'s wallet balance is replenished at": request.data['amount']})
+        context = {
+            f"Succes! {receiver_wallet.owner}'s wallet balance is replenished at":
+                f'{amount} {sending_wallet.currency}'
+        }
+
+        return Response(context, 200)
