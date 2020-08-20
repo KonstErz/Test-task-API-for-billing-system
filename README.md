@@ -197,7 +197,7 @@ where are the fields:
     docker-compose exec web python manage.py createsuperuser
     ```
 
-6.  Now you can go to the server http://localhost:8000/ in your browser. Sign in under the credentials of the superuser you created (http://localhost:8000/admin/ or at http://localhost:8000/api/login/) and try to create several test objects of each type. You can test the operation of the main functionality of the application, for example: creating a wallet (http://localhost:8000/api/walletcreation/), replenishing the balance (http://localhost:8000/api/walletdeposit/) and transaction of funds to another user (http://localhost:8000/api/transaction/).
+6.  Now you can go to the server http://localhost:8000/ in your browser. Sign in under the credentials of the superuser you created (http://localhost:8000/admin/ or at http://localhost:8000/api/login/) and try to create several test objects of each type in the project admin panel. You can test the operation of the main functionality of the application, for example: creating a wallet (http://localhost:8000/api/walletcreation/), replenishing the balance (http://localhost:8000/api/walletdeposit/) and transaction of funds to another user (http://localhost:8000/api/transaction/).
 
 
 Other useful commands that may come in handy when working with the docker container of the project:
